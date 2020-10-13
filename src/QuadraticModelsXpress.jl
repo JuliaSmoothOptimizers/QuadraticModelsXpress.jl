@@ -59,19 +59,16 @@ end
 
 function xpress(QM; method="b", kwargs...)
 
-    prob = Ref{Xpress.Lib.XPRSprob}()
-    Xpress.Lib.XPRScreateprob(prob)
+    prob = Xpress.XpressProblem()
     # use kwargs change to presolve, scaling and crossover mode
     # example: xpress(QM, presolve=0) (see doc for other options)
     for (k, v) in kwargs
         if k==:presolve
-            Xpress.Lib.XPRSsetintcontrol(prob.x, Xpress.Lib.XPRS_PRESOLVE, 0)  # 0 no presolve, 1=presolve
+            Xpress.setintcontrol(prob, Xpress.Lib.XPRS_PRESOLVE, v)  # 0 no presolve, 1=presolve
         elseif k==:scaling
-            GRBsetintparam(env, "ScaleFlag", v) # 0 = no scaling
+            Xpress.setintcontrol(prob, Xpress.Lib.XPRS_SCALING, v)  # 0 no scaling
         elseif k==:crossover
-            Xpress.Lib.XPRSsetintcontrol(prob.x, Xpress.Lib.XPRS_SCALING, 0)  # 0 no scaling
-        elseif k==:display
-            Xpress.Lib.XPRSsetintcontrol(prob.x, Xpress.Lib.XPRS_CROSSOVER, 0)  # 0 no crossover
+            Xpress.setintcontrol(prob, Xpress.Lib.XPRS_CROSSOVER, v)  # 0 no crossover
         end
     end
 
@@ -124,42 +121,40 @@ function xpress(QM; method="b", kwargs...)
     end
 
     if QM.meta.nnzh > 0
-        Xpress.Lib.XPRSloadqp(prob.x, QM.meta.name, QM.meta.nvar, QM.meta.ncon, srowtypes, rhs, drange,
-                              QM.data.c, convert(Array{Cint,1}, A.colptr.-1), C_NULL,
-                              convert(Array{Cint,1}, A.rowval.-1), A.nzval, lvar, uvar, QM.meta.nnzh,
-                              convert(Array{Cint,1}, QM.data.Hrows.-1), convert(Array{Cint,1}, QM.data.Hcols.-1),
-                              QM.data.Hvals)
+        Xpress.loadqp(prob, QM.meta.name, QM.meta.nvar, QM.meta.ncon, srowtypes, rhs, drange,
+                      QM.data.c, convert(Array{Cint,1}, A.colptr.-1), C_NULL,
+                      convert(Array{Cint,1}, A.rowval.-1), A.nzval, lvar, uvar, QM.meta.nnzh,
+                      convert(Array{Cint,1}, QM.data.Hrows.-1), convert(Array{Cint,1}, QM.data.Hcols.-1),
+                      QM.data.Hvals)
     else
-        Xpress.Lib.XPRSloadlp(prob.x, QM.meta.name, QM.meta.nvar, QM.meta.ncon, srowtypes, rhs, drange,
-                              QM.data.c, convert(Array{Cint,1}, A.colptr.-1), C_NULL,
-                              convert(Array{Cint,1}, A.rowval.-1), A.nzval, lvar, uvar)
+        Xpress.loadlp(prob, "", QM.meta.nvar, QM.meta.ncon, srowtypes, rhs, drange,
+                      QM.data.c,convert(Array{Cint,1}, A.colptr.-1), C_NULL,convert(Array{Cint,1}, A.rowval.-1),
+                      A.nzval, lvar, uvar)
     end
-    Xpress.Lib.XPRSchgobj(prob.x, Cint(1), Cint.([-1]), [-QM.data.c0])
+    Xpress.chgobj(prob, [0], [-QM.data.c0])
 
-    t = @timed begin
-        Xpress.Lib.XPRSlpoptimize(prob.x, method)
-    end
+    start_time = time()
+    Xpress.lpoptimize(prob, method)
+    elapsed_time = time() - start_time
 
-    x, y, s = zeros(QM.meta.nvar), zeros(QM.meta.ncon), zeros(QM.meta.ncon), zeros(QM.meta.nvar)
-    Xpress.Lib.XPRSgetsol(prob.x, x, C_NULL, y, s)
-    baritcnt = Ref{Cint}()
-    Xpress.Lib.XPRSgetintattrib(prob.x, Xpress.Lib.XPRS_BARITER, baritcnt)
-    objval = Ref{Float64}()
-    Xpress.Lib.XPRSgetdblattrib(prob.x, Xpress.Lib.XPRS_LPOBJVAL, objval)
-    status = Ref{Cint}()
-    Xpress.Lib.XPRSgetintattrib(prob.x, Xpress.Lib.XPRS_LPSTATUS, status)
-    p_feas = Ref{Float64}() # sum
-    Xpress.Lib.XPRSgetdblattrib(prob.x, Xpress.Lib.XPRS_BARPRIMALINF, p_feas)
-    d_feas = Ref{Float64}() # sum
-    Xpress.Lib.XPRSgetdblattrib(prob.x, Xpress.Lib.XPRS_BARDUALINF, d_feas)
-    stats = GenericExecutionStats(get(xpress_statuses, status[], :unknown),
+    x, y, s = zeros(QM.meta.nvar), zeros(QM.meta.ncon), zeros(QM.meta.nvar)
+    Xpress.getsol(prob, x, C_NULL, y, s)
+    baritcnt = Xpress.getintattrib(prob, Xpress.Lib.XPRS_BARITER)
+    objval = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_LPOBJVAL)
+    status = Xpress.getintattrib(prob, Xpress.Lib.XPRS_LPSTATUS)
+    p_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARPRIMALINF)
+    d_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARDUALINF)
+
+    Xpress.destroyprob(prob)
+
+    stats = GenericExecutionStats(get(xpress_statuses, status, :unknown),
                                   QM, solution = x,
-                                  objective = objval[],
-                                  primal_feas = p_feas[],
-                                  dual_feas = d_feas[],
-                                  iter = Int64(baritcnt[]),
+                                  objective = objval,
+                                  primal_feas = p_feas,
+                                  dual_feas = d_feas,
+                                  iter = Int64(baritcnt),
                                   multipliers = y,
-                                  elapsed_time = t[2])
+                                  elapsed_time = elapsed_time)
     return stats
 end
 
