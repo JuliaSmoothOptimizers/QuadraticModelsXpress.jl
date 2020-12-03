@@ -56,7 +56,6 @@ function sparse_csr(I, J, V, m=maximum(I), n=maximum(J))
     return csrrowptr, csrcolval, csrnzval
 end
 
-
 function xpress(QM; method="b", kwargs...)
 
     prob = Xpress.XpressProblem()
