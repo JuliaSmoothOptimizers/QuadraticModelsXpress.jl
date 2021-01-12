@@ -60,10 +60,7 @@ function xpress(QM; method="b", kwargs...)
 
     prob = Xpress.XpressProblem()
     # use kwargs change to presolve, scaling and crossover mode
-    # example: xpress(QM, presolve=0) (see doc for other options)
-    Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARGAPSTOP, 1.0e-8)
-    Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARDUALSTOP, 1.0e-6)
-    Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARPRIMALSTOP, 1.0e-6)
+    # example: xpress(QM, presolve=0, bargapstop=1e-8) 
     for (k, v) in kwargs
         if k==:presolve
             Xpress.setintcontrol(prob, Xpress.Lib.XPRS_PRESOLVE, v)  # 0 no presolve, 1=presolve
@@ -71,6 +68,12 @@ function xpress(QM; method="b", kwargs...)
             Xpress.setintcontrol(prob, Xpress.Lib.XPRS_SCALING, v)  # 0 no scaling
         elseif k==:crossover
             Xpress.setintcontrol(prob, Xpress.Lib.XPRS_CROSSOVER, v)  # 0 no crossover
+        elseif k==:bargapstop
+            Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARGAPSTOP, v)
+        elseif k==:barprimalstop
+            Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARPRIMALSTOP, v)
+        elseif k==:bardualstop
+            Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARDUALSTOP, v)
         end
     end
 
