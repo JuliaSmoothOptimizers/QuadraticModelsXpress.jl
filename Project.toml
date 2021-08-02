@@ -11,7 +11,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Xpress = "9e70acf3-d6c9-5be6-b5bd-4e2c73e3e054"
 
 [compat]
-Xpress = "0.12"
+Xpress = "0.11"
 QuadraticModels = "0.5"
 julia = "1"
 
