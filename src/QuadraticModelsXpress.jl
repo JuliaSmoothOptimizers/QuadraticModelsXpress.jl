@@ -2,7 +2,7 @@ module QuadraticModelsXpress
 
 export xpress
 
-using SolverTools
+using QuadraticModels, SolverCore
 using LinearAlgebra, SparseArrays
 using Xpress
 
@@ -56,7 +56,7 @@ function sparse_csr(I, J, V, m=maximum(I), n=maximum(J))
     return csrrowptr, csrcolval, csrnzval
 end
 
-function xpress(QM; method="b", kwargs...)
+function xpress(QM::QuadraticModel; method="b", kwargs...)
 
     prob = Xpress.XpressProblem()
     # use kwargs change to presolve, scaling and crossover mode
