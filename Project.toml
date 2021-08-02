@@ -1,7 +1,7 @@
 name = "QuadraticModelsXpress"
 uuid = "2cf8c267-6e70-4ce4-bd8d-41913dbccd90"
 authors = ["Geoffroy Leconte <gleconte50@gmail.com> and contributors"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
