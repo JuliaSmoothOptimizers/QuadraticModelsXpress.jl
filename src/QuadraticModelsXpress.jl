@@ -152,8 +152,6 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
     p_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARPRIMALINF)
     d_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARDUALINF)
 
-    Xpress.destroyprob(prob)
-
     stats = GenericExecutionStats(get(xpress_statuses, status, :unknown),
                                   QM, solution = x,
                                   objective = objval,
@@ -162,7 +160,7 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
                                   iter = Int64(baritcnt),
                                   multipliers = y,
                                   elapsed_time = elapsed_time)
-    
+    Xpress.destroyprob(prob)
     Xpress.free()
 
     return stats
