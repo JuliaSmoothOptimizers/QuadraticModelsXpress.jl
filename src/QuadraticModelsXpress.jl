@@ -59,6 +59,7 @@ end
 function xpress(QM::QuadraticModel{T, S, M1, M2};
                 method="b", kwargs...) where {T, S, M1 <: SparseMatrixCOO, M2 <: SparseMatrixCOO}
 
+    Xpress.init()
     prob = Xpress.XpressProblem()
     # use kwargs change to presolve, scaling and crossover mode
     # example: xpress(QM, presolve=0, bargapstop=1e-8) 
