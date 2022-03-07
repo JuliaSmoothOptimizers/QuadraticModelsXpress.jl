@@ -2,7 +2,7 @@ module QuadraticModelsXpress
 
 export xpress
 
-using QuadraticModels, SolverCore
+using QuadraticModels, SolverCore, SparseMatricesCOO
 using LinearAlgebra, SparseArrays
 using Xpress
 
@@ -56,8 +56,10 @@ function sparse_csr(I, J, V, m=maximum(I), n=maximum(J))
     return csrrowptr, csrcolval, csrnzval
 end
 
-function xpress(QM::QuadraticModel; method="b", kwargs...)
+function xpress(QM::QuadraticModel{T, S, M1, M2};
+                method="b", kwargs...) where {T, S, M1 <: SparseMatrixCOO, M2 <: SparseMatrixCOO}
 
+    Xpress.init()
     prob = Xpress.XpressProblem()
     # use kwargs change to presolve, scaling and crossover mode
     # example: xpress(QM, presolve=0, bargapstop=1e-8) 
@@ -117,7 +119,7 @@ function xpress(QM::QuadraticModel; method="b", kwargs...)
         end
     end
 
-    A = sparse(QM.data.Arows, QM.data.Acols, QM.data.Avals, QM.meta.ncon, QM.meta.nvar)
+    A = sparse(QM.data.A.rows, QM.data.A.cols, QM.data.A.vals, QM.meta.ncon, QM.meta.nvar)
     lvar, uvar = zeros(QM.meta.nvar), zeros(QM.meta.nvar)
 
     for i=1:QM.meta.nvar
@@ -129,8 +131,8 @@ function xpress(QM::QuadraticModel; method="b", kwargs...)
         Xpress.loadqp(prob, QM.meta.name, QM.meta.nvar, QM.meta.ncon, srowtypes, rhs, drange,
                       QM.data.c, convert(Array{Cint,1}, A.colptr.-1), C_NULL,
                       convert(Array{Cint,1}, A.rowval.-1), A.nzval, lvar, uvar, QM.meta.nnzh,
-                      convert(Array{Cint,1}, QM.data.Hrows.-1), convert(Array{Cint,1}, QM.data.Hcols.-1),
-                      QM.data.Hvals)
+                      convert(Array{Cint,1}, QM.data.H.rows.-1), convert(Array{Cint,1}, QM.data.H.cols.-1),
+                      QM.data.H.vals)
     else
         Xpress.loadlp(prob, "", QM.meta.nvar, QM.meta.ncon, srowtypes, rhs, drange,
                       QM.data.c,convert(Array{Cint,1}, A.colptr.-1), C_NULL,convert(Array{Cint,1}, A.rowval.-1),
@@ -150,8 +152,6 @@ function xpress(QM::QuadraticModel; method="b", kwargs...)
     p_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARPRIMALINF)
     d_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARDUALINF)
 
-    Xpress.destroyprob(prob)
-
     stats = GenericExecutionStats(get(xpress_statuses, status, :unknown),
                                   QM, solution = x,
                                   objective = objval,
@@ -160,6 +160,9 @@ function xpress(QM::QuadraticModel; method="b", kwargs...)
                                   iter = Int64(baritcnt),
                                   multipliers = y,
                                   elapsed_time = elapsed_time)
+    Xpress.destroyprob(prob)
+    Xpress.free()
+
     return stats
 end
 
