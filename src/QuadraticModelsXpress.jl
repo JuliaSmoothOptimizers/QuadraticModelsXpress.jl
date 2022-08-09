@@ -70,14 +70,14 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
             Xpress.setintcontrol(prob, Xpress.Lib.XPRS_SCALING, v)  # 0 no scaling
         elseif k==:crossover
             Xpress.setintcontrol(prob, Xpress.Lib.XPRS_CROSSOVER, v)  # 0 no crossover
+        elseif k==:threads
+            Xpress.setintcontrol(prob, Xpress.Lib.XPRS_THREADS, v)
         elseif k==:bargapstop
             Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARGAPSTOP, v)
         elseif k==:barprimalstop
             Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARPRIMALSTOP, v)
         elseif k==:bardualstop
             Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARDUALSTOP, v)
-        elseif k==:threads
-            Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_THREADS, v)
         end
     end
 
