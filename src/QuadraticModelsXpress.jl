@@ -70,6 +70,8 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
             Xpress.setintcontrol(prob, Xpress.Lib.XPRS_SCALING, v)  # 0 no scaling
         elseif k==:crossover
             Xpress.setintcontrol(prob, Xpress.Lib.XPRS_CROSSOVER, v)  # 0 no crossover
+        elseif k==:threads
+            Xpress.setintcontrol(prob, Xpress.Lib.XPRS_THREADS, v)
         elseif k==:bargapstop
             Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARGAPSTOP, v)
         elseif k==:barprimalstop
@@ -160,8 +162,6 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
                                   iter = Int64(baritcnt),
                                   multipliers = y,
                                   elapsed_time = elapsed_time)
-    Xpress.destroyprob(prob)
-    Xpress.free()
 
     return stats
 end

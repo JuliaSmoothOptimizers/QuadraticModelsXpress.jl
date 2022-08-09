@@ -3,7 +3,7 @@ using Test
 
 @testset "QuadraticModelsXpress.jl" begin
     qps1 = readqps("QAFIRO.SIF") #lower bounds
-    stats1 = xpress(QuadraticModel(qps1), presolve=0, crossover=0)
+    stats1 = xpress(QuadraticModel(qps1), presolve=0, crossover=0, threads = 1)
     @test isapprox(stats1.objective, -1.59078179, atol=1e-2)
 
     qps2 = readqps("HS21.SIF") # low/upp bounds
