@@ -162,8 +162,6 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
                                   iter = Int64(baritcnt),
                                   multipliers = y,
                                   elapsed_time = elapsed_time)
-    Xpress.destroyprob(prob)
-    Xpress.free()
 
     return stats
 end
