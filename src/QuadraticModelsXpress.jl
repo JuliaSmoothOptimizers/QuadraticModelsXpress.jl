@@ -76,6 +76,8 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
             Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARPRIMALSTOP, v)
         elseif k==:bardualstop
             Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_BARDUALSTOP, v)
+        elseif k==:threads
+            Xpress.setdblcontrol(prob, Xpress.Lib.XPRS_THREADS, v)
         end
     end
 
