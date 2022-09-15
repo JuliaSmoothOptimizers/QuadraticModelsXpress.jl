@@ -154,8 +154,9 @@ function xpress(QM::QuadraticModel{T, S, M1, M2};
     p_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARPRIMALINF)
     d_feas = Xpress.getdblattrib(prob, Xpress.Lib.XPRS_BARDUALINF)
 
-    stats = GenericExecutionStats(get(xpress_statuses, status, :unknown),
-                                  QM, solution = x,
+    stats = GenericExecutionStats(QM,
+                                  status = get(xpress_statuses, status, :unknown),
+                                  solution = x,
                                   objective = objval,
                                   primal_feas = p_feas,
                                   dual_feas = d_feas,

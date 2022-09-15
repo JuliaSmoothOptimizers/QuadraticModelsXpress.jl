@@ -13,8 +13,9 @@ SparseMatricesCOO = "fa32481b-f100-4b48-8dc8-c62f61b13870"
 Xpress = "9e70acf3-d6c9-5be6-b5bd-4e2c73e3e054"
 
 [compat]
-QuadraticModels = "0.7, 0.8, 0.9"
-SparseMatricesCOO = "0.1, 0.2"
+QuadraticModels = "0.9"
+SparseMatricesCOO = "0.2"
+SolverCore = "0.3"
 Xpress = "0.14, 0.15"
 julia = "1"
 
